@@ -1,23 +1,18 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()         // ✅ Keep this simple, don’t filter Firebase out
         mavenCentral()
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
+        google()         // ✅ Ensure Firebase can resolve
         mavenCentral()
     }
 }
 
-rootProject.name = "manyura job portal"
+rootProject.name = "ManyuraJobPortal" // ✅ Avoid spaces in project name
 include(":app")

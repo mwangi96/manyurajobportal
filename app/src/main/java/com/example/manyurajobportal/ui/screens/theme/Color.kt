@@ -1,4 +1,4 @@
-package com.example.manyurajobportal.ui.theme
+package com.example.manyurajobportal.ui.screens.theme
 
 import androidx.compose.ui.graphics.Color
 
