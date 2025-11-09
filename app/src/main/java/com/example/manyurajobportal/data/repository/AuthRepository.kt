@@ -10,21 +10,22 @@ class AuthRepository(
     private val firestore: FirebaseFirestore
 ) {
 
-    // ✅ Sign Up + Save user details in Firestore
+    // ✅ Sign Up + Automatically assign "alumni" role
     suspend fun signUpWithEmail(
         name: String,
         email: String,
-        password: String,
-        role: String
+        password: String
     ): Result<Unit> {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val uid = result.user?.uid ?: throw Exception("User UID is null")
+
+            // Automatically assign alumni role
             val user = User(
                 uid = uid,
                 name = name,
                 email = email,
-                role = role
+                role = "alumni"
             )
 
             firestore.collection("users").document(uid).set(user).await()

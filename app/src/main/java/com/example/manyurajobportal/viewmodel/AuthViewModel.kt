@@ -14,7 +14,7 @@ class AuthViewModel(
     private val app: Application
 ) : AndroidViewModel(app) {
 
-    // 🔹 Observable auth state (for optional UI updates)
+    // 🔹 Observable auth state (for UI updates)
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
 
@@ -26,33 +26,32 @@ class AuthViewModel(
     }
 
     // =============================================================
-    // ✅ SIGN UP — With callback for direct navigation
+    // ✅ SIGN UP — Automatically assigns "alumni" role
     // =============================================================
     fun signUpUser(
         name: String,
         email: String,
         password: String,
-        role: String,
         onResult: (Boolean) -> Unit
     ) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            val result = repository.signUpWithEmail(name, email, password, role)
+            val result = repository.signUpWithEmail(name, email, password)
             result.onSuccess {
                 Toast.makeText(app, "Sign up successful!", Toast.LENGTH_SHORT).show()
-                _authState.value = AuthState.Success(role)
-                onResult(true) // ✅ Callback success
+                _authState.value = AuthState.Success("alumni") // default role
+                onResult(true)
             }.onFailure {
                 val message = it.message ?: "Sign-up failed"
                 Toast.makeText(app, message, Toast.LENGTH_SHORT).show()
                 _authState.value = AuthState.Error(message)
-                onResult(false) // ❌ Callback fail
+                onResult(false)
             }
         }
     }
 
     // =============================================================
-    // ✅ LOGIN — With callback for direct navigation
+    // ✅ LOGIN — Fetch role from Firestore for navigation
     // =============================================================
     fun loginUser(
         email: String,
@@ -67,18 +66,18 @@ class AuthViewModel(
                 val role = uid?.let { repository.getUserRole(it) } ?: "alumni"
                 Toast.makeText(app, "Login successful!", Toast.LENGTH_SHORT).show()
                 _authState.value = AuthState.Success(role)
-                onResult(true, role) // ✅ Callback success with role
+                onResult(true, role)
             }.onFailure {
                 val message = it.message ?: "Invalid email or password"
                 Toast.makeText(app, message, Toast.LENGTH_SHORT).show()
                 _authState.value = AuthState.Error(message)
-                onResult(false, null) // ❌ Callback fail
+                onResult(false, null)
             }
         }
     }
 
     // =============================================================
-    // 🔹 Password reset
+    // 🔹 Password Reset
     // =============================================================
     fun resetPassword(email: String) {
         viewModelScope.launch {

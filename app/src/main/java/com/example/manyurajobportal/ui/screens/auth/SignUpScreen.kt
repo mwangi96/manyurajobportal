@@ -1,18 +1,31 @@
 package com.example.manyurajobportal.ui.screens.auth
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.manyurajobportal.R
 import com.example.manyurajobportal.navigation.Routes
 import com.example.manyurajobportal.viewmodel.AuthViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
     navController: NavController,
@@ -22,89 +35,147 @@ fun SignUpScreen(
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var role by remember { mutableStateOf("alumni") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     val state by authViewModel.authState.collectAsState()
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text("Create Account", style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Full Name") },
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(selected = role == "admin", onClick = { role = "admin" })
-                Text("Admin", modifier = Modifier.padding(end = 16.dp))
-                RadioButton(selected = role == "alumni", onClick = { role = "alumni" })
-                Text("Alumni")
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Text(
+                    text = "Manyura Job Portal",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
+        }
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ist),
+                    contentDescription = "App Logo",
+                    modifier = Modifier.size(120.dp)
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    authViewModel.signUpUser(name, email, password, role) { success ->
-                        if (success) {
-                            Toast.makeText(context, "Signup successful!", Toast.LENGTH_SHORT).show()
-                            navController.navigate(
-                                if (role == "admin") Routes.AdminDashboard.route
-                                else Routes.AlumniDashboard.route
-                            ) {
-                                popUpTo(Routes.SignUpScreen.route) { inclusive = true }
+                Text(
+                    text = "Create Account",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Sign up to get started",
+                    color = Color.Gray,
+                    fontSize = 16.sp
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Full Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val image =
+                            if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = image,
+                                contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        if (name.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
+                            authViewModel.signUpUser(name, email, password) { success ->
+                                if (success) {
+                                    Toast.makeText(context, "Signup successful! Please log in.", Toast.LENGTH_SHORT).show()
+                                    navController.navigate(Routes.LoginScreen.route) {
+                                        popUpTo(Routes.SignUpScreen.route) { inclusive = true }
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Signup failed. Try again.", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         } else {
-                            Toast.makeText(context, "Signup failed!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Please fill in all fields.", Toast.LENGTH_SHORT).show()
                         }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Sign Up")
-            }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Text("Sign Up")
+                }
 
-            TextButton(onClick = { navController.navigate(Routes.LoginScreen.route) }) {
-                Text("Already have an account? Login")
-            }
+                Spacer(modifier = Modifier.height(8.dp))
 
-            if (state is AuthViewModel.AuthState.Loading) {
-                CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
-            }
+                TextButton(onClick = { navController.navigate(Routes.LoginScreen.route) }) {
+                    Text("Already have an account? Login")
+                }
 
-            if (state is AuthViewModel.AuthState.Error) {
-                Text(
-                    text = (state as AuthViewModel.AuthState.Error).message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                if (state is AuthViewModel.AuthState.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(top = 24.dp)
+                            .size(40.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                if (state is AuthViewModel.AuthState.Error) {
+                    Text(
+                        text = (state as AuthViewModel.AuthState.Error).message,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
             }
         }
     }

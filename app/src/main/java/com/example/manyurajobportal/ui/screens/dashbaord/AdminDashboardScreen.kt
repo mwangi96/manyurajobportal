@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -18,17 +18,15 @@ fun AdminDashboardScreen(
     navController: NavController,
     authViewModel: AuthViewModel
 ) {
+    // 🔹 Controls showing the logout confirmation dialog
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Admin Dashboard") },
                 actions = {
-                    IconButton(onClick = {
-                        authViewModel.logout()
-                        navController.navigate("login") {
-                            popUpTo("admin_dashboard") { inclusive = true }
-                        }
-                    }) {
+                    IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.ExitToApp,
                             contentDescription = "Logout"
@@ -63,6 +61,31 @@ fun AdminDashboardScreen(
             Text(
                 text = "Welcome, Admin!",
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+            )
+        }
+
+        // 🔹 Logout Confirmation Dialog
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text("Confirm Logout") },
+                text = { Text("Do you really want to quit?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showLogoutDialog = false
+                        authViewModel.logout()
+                        navController.navigate("login") {
+                            popUpTo("admin_dashboard") { inclusive = true }
+                        }
+                    }) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLogoutDialog = false }) {
+                        Text("No")
+                    }
+                }
             )
         }
     }
