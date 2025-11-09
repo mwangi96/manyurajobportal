@@ -2,7 +2,11 @@ package com.example.manyurajobportal.ui.screens.dashboard
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,18 +22,50 @@ fun AlumniDashboardScreen(
     navController: NavController,
     authViewModel: AuthViewModel
 ) {
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) } // For dropdown menu
+    var showLogoutDialog by remember { mutableStateOf(false) } // For logout confirmation
+    var selectedItem by remember { mutableStateOf("Home") } // Track selected bottom nav item
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Alumni Dashboard") },
                 actions = {
-                    IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Default.ExitToApp,
-                            contentDescription = "Logout"
-                        )
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu"
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Blog") },
+                                onClick = {
+                                    showMenu = false
+                                    // Navigate to Blog screen
+                                    navController.navigate("blog")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Contact Us") },
+                                onClick = {
+                                    showMenu = false
+                                    // Navigate to Contact Us screen
+                                    navController.navigate("contact_us")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Logout") },
+                                onClick = {
+                                    showMenu = false
+                                    showLogoutDialog = true
+                                }
+                            )
+                        }
                     }
                 }
             )
@@ -37,16 +73,40 @@ fun AlumniDashboardScreen(
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
-                    selected = false,
-                    onClick = { /* TODO: navigate to Home */ },
+                    selected = selectedItem == "Home",
+                    onClick = {
+                        selectedItem = "Home"
+                        navController.navigate("home")
+                    },
                     label = { Text("Home") },
-                    icon = { Icon(Icons.Default.ExitToApp, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Home, contentDescription = null) }
                 )
                 NavigationBarItem(
-                    selected = false,
-                    onClick = { /* TODO: navigate to Applications */ },
+                    selected = selectedItem == "Applications",
+                    onClick = {
+                        selectedItem = "Applications"
+                        navController.navigate("applications")
+                    },
                     label = { Text("Applications") },
-                    icon = { Icon(Icons.Default.ExitToApp, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Work, contentDescription = null) }
+                )
+                NavigationBarItem(
+                    selected = selectedItem == "Chat",
+                    onClick = {
+                        selectedItem = "Chat"
+                        navController.navigate("chat")
+                    },
+                    label = { Text("Chat") },
+                    icon = { Icon(Icons.Default.Chat, contentDescription = null) }
+                )
+                NavigationBarItem(
+                    selected = selectedItem == "Profile",
+                    onClick = {
+                        selectedItem = "Profile"
+                        navController.navigate("profile")
+                    },
+                    label = { Text("Profile") },
+                    icon = { Icon(Icons.Default.Person, contentDescription = null) }
                 )
             }
         }

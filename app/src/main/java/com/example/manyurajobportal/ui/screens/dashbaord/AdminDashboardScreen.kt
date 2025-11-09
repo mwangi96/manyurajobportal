@@ -2,7 +2,11 @@ package com.example.manyurajobportal.ui.screens.dashboard
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PostAdd
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,19 +22,50 @@ fun AdminDashboardScreen(
     navController: NavController,
     authViewModel: AuthViewModel
 ) {
-    // 🔹 Controls showing the logout confirmation dialog
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) } // For dropdown menu
+    var showLogoutDialog by remember { mutableStateOf(false) } // For logout confirmation
+    var selectedItem by remember { mutableStateOf("Posted Jobs") } // Track bottom nav selection
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Admin Dashboard") },
                 actions = {
-                    IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Default.ExitToApp,
-                            contentDescription = "Logout"
-                        )
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu"
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Blog") },
+                                onClick = {
+                                    showMenu = false
+                                    // Navigate to Blog screen
+                                    navController.navigate("blog")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Contact Us") },
+                                onClick = {
+                                    showMenu = false
+                                    // Navigate to Contact Us screen
+                                    navController.navigate("contact_us")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Logout") },
+                                onClick = {
+                                    showMenu = false
+                                    showLogoutDialog = true
+                                }
+                            )
+                        }
                     }
                 }
             )
@@ -38,16 +73,40 @@ fun AdminDashboardScreen(
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
-                    selected = false,
-                    onClick = { /* TODO: navigate to Posted Jobs */ },
+                    selected = selectedItem == "Posted Jobs",
+                    onClick = {
+                        selectedItem = "Posted Jobs"
+                        navController.navigate("posted_jobs")
+                    },
                     label = { Text("Posted Jobs") },
-                    icon = { Icon(Icons.Default.ExitToApp, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Work, contentDescription = null) }
                 )
                 NavigationBarItem(
-                    selected = false,
-                    onClick = { /* TODO: navigate to Post Job */ },
+                    selected = selectedItem == "Post Job",
+                    onClick = {
+                        selectedItem = "Post Job"
+                        navController.navigate("post_job")
+                    },
                     label = { Text("Post Job") },
-                    icon = { Icon(Icons.Default.ExitToApp, contentDescription = null) }
+                    icon = { Icon(Icons.Default.PostAdd, contentDescription = null) }
+                )
+                NavigationBarItem(
+                    selected = selectedItem == "Chat",
+                    onClick = {
+                        selectedItem = "Chat"
+                        navController.navigate("chat")
+                    },
+                    label = { Text("Chat") },
+                    icon = { Icon(Icons.Default.Chat, contentDescription = null) }
+                )
+                NavigationBarItem(
+                    selected = selectedItem == "Profile",
+                    onClick = {
+                        selectedItem = "Profile"
+                        navController.navigate("profile")
+                    },
+                    label = { Text("Profile") },
+                    icon = { Icon(Icons.Default.Person, contentDescription = null) }
                 )
             }
         }
