@@ -8,4 +8,6 @@ sealed class Routes(val route: String) {
     // Add these two routes for role-based navigation
     object AdminDashboard : Routes("admin_dashboard")
     object AlumniDashboard : Routes("alumni_dashboard")
+
+    object PostJobScreen : Routes("post_job")
 }
