@@ -2,11 +2,7 @@ package com.example.manyurajobportal.ui.screens.dashboard
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,29 +10,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.manyurajobportal.viewmodel.AuthViewModel
+import com.example.manyurajobportal.viewmodel.SharedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlumniDashboardScreen(
     navController: NavController,
-    authViewModel: AuthViewModel
+    sharedViewModel: SharedViewModel
 ) {
-    var showMenu by remember { mutableStateOf(false) } // For dropdown menu
-    var showLogoutDialog by remember { mutableStateOf(false) } // For logout confirmation
-    var selectedItem by remember { mutableStateOf("Home") } // Track selected bottom nav item
+    var showMenu by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var selectedItem by remember { mutableStateOf("Home") }
+
+    // ✅ Access logged-in user data
+    val userName = sharedViewModel.userName.value
+    val userEmail = sharedViewModel.userEmail.value
+    val userRole = sharedViewModel.userRole.value
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Alumni Dashboard") },
+                title = {
+                    Column {
+                        Text("Alumni Dashboard", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Welcome, $userName ($userRole)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
                 actions = {
                     Box {
                         IconButton(onClick = { showMenu = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu"
-                            )
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
                         DropdownMenu(
                             expanded = showMenu,
@@ -46,7 +52,6 @@ fun AlumniDashboardScreen(
                                 text = { Text("Blog") },
                                 onClick = {
                                     showMenu = false
-                                    // Navigate to Blog screen
                                     navController.navigate("blog")
                                 }
                             )
@@ -54,7 +59,6 @@ fun AlumniDashboardScreen(
                                 text = { Text("Contact Us") },
                                 onClick = {
                                     showMenu = false
-                                    // Navigate to Contact Us screen
                                     navController.navigate("contact_us")
                                 }
                             )
@@ -79,7 +83,7 @@ fun AlumniDashboardScreen(
                         navController.navigate("home")
                     },
                     label = { Text("Home") },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Home, null) }
                 )
                 NavigationBarItem(
                     selected = selectedItem == "Applications",
@@ -88,7 +92,7 @@ fun AlumniDashboardScreen(
                         navController.navigate("applications")
                     },
                     label = { Text("Applications") },
-                    icon = { Icon(Icons.Default.Work, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Work, null) }
                 )
                 NavigationBarItem(
                     selected = selectedItem == "Chat",
@@ -97,7 +101,7 @@ fun AlumniDashboardScreen(
                         navController.navigate("chat")
                     },
                     label = { Text("Chat") },
-                    icon = { Icon(Icons.Default.Chat, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Chat, null) }
                 )
                 NavigationBarItem(
                     selected = selectedItem == "Profile",
@@ -106,7 +110,7 @@ fun AlumniDashboardScreen(
                         navController.navigate("profile")
                     },
                     label = { Text("Profile") },
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Person, null) }
                 )
             }
         }
@@ -118,21 +122,21 @@ fun AlumniDashboardScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Welcome, Alumni!",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+                text = "Welcome, $userName!\nEmail: $userEmail",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium)
             )
         }
 
-        // 🔹 Logout Confirmation Dialog
+        // 🔹 Logout Confirmation
         if (showLogoutDialog) {
             AlertDialog(
                 onDismissRequest = { showLogoutDialog = false },
                 title = { Text("Confirm Logout") },
-                text = { Text("Do you really want to quit?") },
+                text = { Text("Do you really want to log out?") },
                 confirmButton = {
                     TextButton(onClick = {
                         showLogoutDialog = false
-                        authViewModel.logout()
+                        sharedViewModel.clearUserInfo()
                         navController.navigate("login") {
                             popUpTo("alumni_dashboard") { inclusive = true }
                         }
