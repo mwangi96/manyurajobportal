@@ -25,17 +25,18 @@ import androidx.navigation.NavController
 import com.example.manyurajobportal.R
 import com.example.manyurajobportal.navigation.Routes
 import com.example.manyurajobportal.viewmodel.AuthViewModel
+import com.example.manyurajobportal.viewmodel.SharedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     navController: NavController,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    sharedViewModel: SharedViewModel // ✅ Added shared view model
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
 
-    // Load remembered credentials if available
     var email by remember { mutableStateOf(sharedPreferences.getString("email", "") ?: "") }
     var password by remember { mutableStateOf(sharedPreferences.getString("password", "") ?: "") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -71,7 +72,7 @@ fun LoginScreen(
                 // Logo
                 Image(
                     painter = painterResource(id = R.drawable.ist),
-                    contentDescription = "IST Logo",
+                    contentDescription = "App Logo",
                     modifier = Modifier.size(120.dp)
                 )
 
@@ -113,7 +114,8 @@ fun LoginScreen(
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
-                        val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        val image =
+                            if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = image,
@@ -147,7 +149,7 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Login Button
+                // ✅ Login Button
                 Button(
                     onClick = {
                         if (email.isNotBlank() && password.isNotBlank()) {
@@ -165,21 +167,64 @@ fun LoginScreen(
                                         apply()
                                     }
 
-                                    val userRole = role ?: "alumni"
-                                    Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
+                                    val currentUser = authViewModel.repository.currentUser()
+                                    val uid = currentUser?.uid
+                                    if (uid != null) {
+                                        authViewModel.repository.firestore.collection("users")
+                                            .document(uid)
+                                            .get()
+                                            .addOnSuccessListener { doc ->
+                                                val name = doc.getString("name") ?: ""
+                                                val emailFetched = doc.getString("email") ?: ""
+                                                val roleFetched = doc.getString("role") ?: "alumni"
 
-                                    navController.navigate(
-                                        if (userRole == "admin") Routes.AdminDashboard.route
-                                        else Routes.AlumniDashboard.route
-                                    ) {
-                                        popUpTo(Routes.LoginScreen.route) { inclusive = true }
+                                                // ✅ Save user info into SharedViewModel
+                                                sharedViewModel.setUserInfo(
+                                                    name = name,
+                                                    email = emailFetched,
+                                                    role = roleFetched
+                                                )
+
+                                                Toast.makeText(
+                                                    context,
+                                                    "Welcome, $name!",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+
+                                                // ✅ Navigate based on role
+                                                navController.navigate(
+                                                    if (roleFetched == "admin")
+                                                        Routes.AdminDashboard.route
+                                                    else
+                                                        Routes.AlumniDashboard.route
+                                                ) {
+                                                    popUpTo(Routes.LoginScreen.route) {
+                                                        inclusive = true
+                                                    }
+                                                }
+                                            }
+                                            .addOnFailureListener {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Failed to fetch user data.",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
                                     }
                                 } else {
-                                    Toast.makeText(context, "Invalid email or password!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Invalid email or password!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         } else {
-                            Toast.makeText(context, "Please fill all fields.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Please fill all fields.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     },
                     modifier = Modifier

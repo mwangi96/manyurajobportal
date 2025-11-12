@@ -7,7 +7,7 @@ import kotlinx.coroutines.tasks.await
 
 class AuthRepository(
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    val firestore: FirebaseFirestore
 ) {
 
     // ✅ Sign Up + Automatically assign "alumni" role

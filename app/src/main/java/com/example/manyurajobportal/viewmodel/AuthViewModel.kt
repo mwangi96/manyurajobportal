@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
-    private val repository: AuthRepository,
+    val repository: AuthRepository,
     private val app: Application
 ) : AndroidViewModel(app) {
 
