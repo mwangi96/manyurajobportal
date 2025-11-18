@@ -72,6 +72,7 @@ dependencies {
 
     // ✅ ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+    implementation(libs.androidx.room.ktx)
 
     // ✅ Testing
     testImplementation(libs.junit)
@@ -81,5 +82,9 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Coil for Jetpack Compose
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
 }
 
