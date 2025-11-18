@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.manyurajobportal.ui.screens.admin.PostJobScreen
+import com.example.manyurajobportal.ui.screens.admin.PostedJobScreen
 import com.example.manyurajobportal.ui.screens.auth.LoginScreen
 import com.example.manyurajobportal.ui.screens.auth.SignUpScreen
 import com.example.manyurajobportal.ui.screens.dashboard.AdminDashboardScreen
@@ -13,6 +14,7 @@ import com.example.manyurajobportal.ui.screens.dashboard.AlumniDashboardScreen
 import com.example.manyurajobportal.ui.screens.intro.IntroScreen
 import com.example.manyurajobportal.viewmodel.AuthViewModel
 import com.example.manyurajobportal.viewmodel.SharedViewModel
+import com.example.manyurajobportal.viewmodel.admin.AdminJobsViewModel
 
 @Composable
 fun NavGraph(
@@ -73,5 +75,15 @@ fun NavGraph(
                 sharedViewModel = sharedViewModel
             )
         }
+
+        // 📌 Admin Posted Jobs Screen
+        composable(Routes.AdminPostedJobs.route) {
+            val vm: AdminJobsViewModel = viewModel()
+            PostedJobScreen(
+                navController = navController,
+                viewModel = vm
+            )
+        }
+
     }
 }

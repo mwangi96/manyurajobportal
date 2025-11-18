@@ -10,4 +10,5 @@ sealed class Routes(val route: String) {
     object AlumniDashboard : Routes("alumni_dashboard")
 
     object PostJobScreen : Routes("post_job")
+    object AdminPostedJobs : Routes("posted_jobs")
 }
