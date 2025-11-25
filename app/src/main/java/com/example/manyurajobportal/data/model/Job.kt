@@ -15,5 +15,6 @@ data class Job(
     val city: String = "",
     val jobDescription: String = "",
     val skills: List<String> = emptyList(),   // NEW: for required job skills
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val applicantCount: Int = 0
 )
