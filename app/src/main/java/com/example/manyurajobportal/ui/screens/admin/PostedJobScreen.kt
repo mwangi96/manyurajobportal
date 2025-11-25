@@ -8,22 +8,42 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.manyurajobportal.viewmodel.admin.AdminJobsViewModel
 import com.example.manyurajobportal.data.model.Job
+import com.example.manyurajobportal.ui.screens.components.JobCard
+import com.example.manyurajobportal.viewmodel.SharedViewModel
+import com.example.manyurajobportal.viewmodel.admin.AdminJobsViewModel
+import com.example.manyurajobportal.viewmodel.alumni.AlumniJobViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostedJobScreen(
     navController: NavController,
-    viewModel: AdminJobsViewModel = viewModel()
+    sharedViewModel: SharedViewModel
 ) {
-    val jobs by viewModel.jobs.collectAsState()
-    val search by viewModel.search.collectAsState()
-    val isLoading by viewModel.loading.collectAsState()
+    val isAdmin = sharedViewModel.userRole.value == "admin"
+
+    // 👇 Correct ViewModel based on role
+    val adminVM: AdminJobsViewModel? = if (isAdmin) viewModel() else null
+    val alumniVM: AlumniJobViewModel? = if (!isAdmin) viewModel() else null
+
+    // 👇 Unified state
+    val jobs by (adminVM?.jobs ?: alumniVM?.jobs)!!.collectAsState()
+    val search by (adminVM?.search ?: alumniVM?.search)!!.collectAsState()
+    val isLoading by (adminVM?.loading ?: alumniVM?.loading)!!.collectAsState()
+
+    // 👇 Load jobs when screen opens
+    LaunchedEffect(isAdmin) {
+        if (isAdmin) {
+            adminVM?.loadJobs()
+        } else {
+            alumniVM?.loadJobs()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -31,30 +51,37 @@ fun PostedJobScreen(
             .padding(16.dp)
     ) {
 
-        // 🔍 Search Bar
+        // 🔍 Search bar
         OutlinedTextField(
             value = search,
-            onValueChange = viewModel::onSearchChange,
+            onValueChange = { query ->
+                if (isAdmin) adminVM?.onSearchChange(query)
+                else alumniVM?.onSearchChange(query)
+            },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search posted jobs…") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+            placeholder = { Text("Search jobs…") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             singleLine = true
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ⏳ Loading State
+        // ⏳ Loading UI
         if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) { CircularProgressIndicator() }
             return
         }
 
-        // ❗ Empty UI
+        // ❗ No jobs
         if (jobs.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                Text("No jobs posted yet.", style = MaterialTheme.typography.bodyLarge)
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No jobs available.", style = MaterialTheme.typography.bodyLarge)
             }
             return
         }
@@ -62,70 +89,38 @@ fun PostedJobScreen(
         // 📌 Jobs list
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(jobs) { job ->
+
                 JobCard(
                     job = job,
+                    isAdmin = isAdmin,
+                    applicantCount = job.applicantCount,
+
+                    onApplyClick = {
+                        if (!isAdmin) {
+                            navController.navigate("alumni_job_details/${job.jobId}")
+                        }
+                    },
+
+                    onViewApplicantsClick = {
+                        if (isAdmin) {
+                            navController.navigate("applicants/${job.jobId}")
+                        }
+                    },
+
+                    onManageJobClick = {
+                        if (isAdmin) {
+                            navController.navigate("admin_edit_job/${job.jobId}")
+                        }
+                    },
+
                     onClick = {
-                        // OPTIONAL: navigate to job details
-                        // navController.navigate("job_details/${job.jobId}")
+                        if (isAdmin) {
+                            navController.navigate("admin_job_details/${job.jobId}")
+                        } else {
+                            navController.navigate("alumni_job_details/${job.jobId}")
+                        }
                     }
                 )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun JobCard(
-    job: Job,
-    isAdmin: Boolean = false,   // Pass this from your dashboard
-    onClick: () -> Unit = {},   // Handle navigation outside
-    onManageJobClick: () -> Unit = {}, // Admin button
-    onApplyClick: () -> Unit = {}      // Alumni button
-) {
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-
-            // 🔵 Title + Company
-            Text(job.jobTitle, style = MaterialTheme.typography.titleLarge)
-            Text(job.companyName, style = MaterialTheme.typography.bodyMedium)
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // 📍 Location
-            Text("${job.city}, ${job.country}", style = MaterialTheme.typography.bodySmall)
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 💰 Salary Range
-            Text(
-                text = "Salary: ${job.currency} ${job.minSalary} - ${job.maxSalary} (${job.salaryType})",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ============================
-            //  🔘 ACTION BUTTON (Admin vs Alumni)
-            // ============================
-            if (isAdmin) {
-                Button(
-                    onClick = onManageJobClick,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Manage Job")     // Future: show applicants count here
-                }
-            } else {
-                Button(
-                    onClick = onApplyClick,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Apply Now")
-                }
             }
         }
     }
