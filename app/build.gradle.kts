@@ -73,6 +73,7 @@ dependencies {
     // ✅ ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.ui)
 
     // ✅ Testing
     testImplementation(libs.junit)
