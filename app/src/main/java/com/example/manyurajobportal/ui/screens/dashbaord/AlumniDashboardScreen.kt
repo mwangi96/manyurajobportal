@@ -14,12 +14,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.manyurajobportal.ui.screens.admin.PostedJobScreen
+import com.example.manyurajobportal.ui.screens.alumni.AlumniProfileScreen
+import com.example.manyurajobportal.ui.screens.alumni.ApplicationsScreen
 import com.example.manyurajobportal.viewmodel.SharedViewModel
-//import com.example.manyurajobportal.ui.screens.alumni.AlumniHomeScreen
-//import com.example.manyurajobportal.ui.screens.alumni.AlumniApplicationsScreen
-//import com.example.manyurajobportal.ui.screens.profile.AlumniProfileScreen
-//import com.example.manyurajobportal.ui.screens.chat.ChatScreen
+import com.example.manyurajobportal.viewmodel.alumni.AlumniJobViewModel
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +33,17 @@ fun AlumniDashboardScreen(
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+//    var selectedItem by remember { mutableStateOf("Home") }
+
+
+    val backStackEntry = navController.currentBackStackEntryAsState().value
+    val tab = backStackEntry?.arguments?.getString("tab") ?: "Home"
+
     var selectedItem by remember { mutableStateOf("Home") }
+
+    LaunchedEffect(tab) {
+        selectedItem = tab
+    }
 
     val userName = sharedViewModel.userName.value
     val userRole = sharedViewModel.userRole.value
@@ -112,25 +126,39 @@ fun AlumniDashboardScreen(
         }
     ) { padding ->
 
-        // ⭐ Render selected page here (same as admin logic)
         Box(modifier = Modifier.padding(padding)) {
+
             when (selectedItem) {
 
-//                "Home" -> {
-//                    AlumniHomeScreen(navController = navController)
-//                }
-//
-//                "Applications" -> {
-//                    AlumniApplicationsScreen(navController = navController)
-//                }
-//
+                "Home" -> {
+                    PostedJobScreen(
+                        navController = navController,
+                        sharedViewModel = sharedViewModel   // ⭐ FIXED
+                    )
+                }
+
+                "Applications" -> {
+                    ApplicationsScreen(
+                        navController = navController,
+                        userId = sharedViewModel.userId.value ?: "",
+                        sharedViewModel = sharedViewModel
+                    )
+                }
+
+
 //                "Chat" -> {
-//                    ChatScreen(navController = navController)
+//                    ChatScreen(
+//                        navController = navController,
+//                        sharedViewModel = sharedViewModel     // ⭐ USE SAME VIEWMODEL
+//                    )
 //                }
-//
-//                "Profile" -> {
-//                    AlumniProfileScreen(navController = navController)
-//                }
+
+                "Profile" -> {
+                    AlumniProfileScreen(
+                        navController = navController,
+                        sharedViewModel = sharedViewModel     // ⭐ KEEP USER DATA
+                    )
+                }
             }
         }
     }
