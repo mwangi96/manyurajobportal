@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.tasks.await
 
 class AlumniJobViewModel : ViewModel() {
 
@@ -69,4 +70,22 @@ class AlumniJobViewModel : ViewModel() {
                 _loading.value = false
             }
     }
+
+    suspend fun hasUserApplied(jobId: String): Boolean {
+        val uid = FirebaseAuth.getInstance().uid ?: return false
+
+        return try {
+            val doc = firestore.collection("applications")
+                .document(jobId)
+                .collection("applicants")
+                .document(uid)
+                .get()
+                .await()
+
+            doc.exists()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
 }
