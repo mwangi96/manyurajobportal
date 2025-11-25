@@ -7,6 +7,7 @@ import com.example.manyurajobportal.data.repository.JobRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class AdminJobsViewModel(
@@ -26,6 +27,9 @@ class AdminJobsViewModel(
         loadJobs()
     }
 
+    // ---------------------------------------------------------
+    // 🔍 LOAD ALL JOBS POSTED BY THIS ADMIN
+    // ---------------------------------------------------------
     fun loadJobs() {
         viewModelScope.launch {
             try {
@@ -42,6 +46,34 @@ class AdminJobsViewModel(
 
     fun onSearchChange(value: String) {
         _search.value = value
-        loadJobs() // run search instantly
+        loadJobs()
     }
+
+    // ---------------------------------------------------------
+    // 🟦 GET A SINGLE JOB BY ID (USED IN AdminJobDetailsScreen)
+    // ---------------------------------------------------------
+    fun getJobById(jobId: String): Flow<Job?> {
+        return repository.getJobById(jobId)
+    }
+
+    // ---------------------------------------------------------
+    // ❌ DELETE A JOB (USED IN AdminJobDetailsScreen)
+    // ---------------------------------------------------------
+    fun deleteJob(jobId: String) {
+        viewModelScope.launch {
+            repository.deleteJob(jobId)
+        }
+    }
+
+
+
+    // ---------------------------------------------------------
+// 🟩 UPDATE JOB
+// ---------------------------------------------------------
+    fun updateJob(job: Job) {
+        viewModelScope.launch {
+            repository.updateJob(job)
+        }
+    }
+
 }

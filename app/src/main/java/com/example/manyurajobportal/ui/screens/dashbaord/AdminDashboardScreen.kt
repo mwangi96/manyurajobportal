@@ -127,9 +127,12 @@ fun AdminDashboardScreen(
             when (selectedItem) {
 
                 "Posted Jobs" -> {
-                    // Let PostedJobScreen use its own viewModel() default
-                    PostedJobScreen(navController = navController)
+                    PostedJobScreen(
+                        navController = navController,
+                        sharedViewModel = sharedViewModel
+                    )
                 }
+
 
                 "Post Job" -> {
                     PostJobScreen(
