@@ -90,9 +90,20 @@ fun PostedJobScreen(
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(jobs) { job ->
 
+                // ⭐ Only check applied status for alumni
+                val hasApplied by if (!isAdmin) {
+                    produceState<Boolean?>(initialValue = null, key1 = job.jobId) {
+                        value = alumniVM?.hasUserApplied(job.jobId) ?: false
+                    }
+                } else {
+                    remember { mutableStateOf(false) }   // ✅ Fixed
+                }
+
+
                 JobCard(
                     job = job,
                     isAdmin = isAdmin,
+                    hasApplied = hasApplied == true,   // ⭐ APPLY STATUS HERE
                     applicantCount = job.applicantCount,
 
                     onApplyClick = {
