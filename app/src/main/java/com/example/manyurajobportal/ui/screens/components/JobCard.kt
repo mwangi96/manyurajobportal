@@ -40,6 +40,7 @@ fun JobCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+
             if (isAdmin) {
                 Text("Applicants: $applicantCount")
                 Spacer(modifier = Modifier.height(8.dp))

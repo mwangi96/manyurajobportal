@@ -10,13 +10,10 @@ class JobViewModel(
     private val repository: JobRepository
 ) : ViewModel() {
 
-    fun postjob(
-        job: Job,
-        onResult: (Boolean, String) -> Unit
-    ) {
+    fun postjob(job: Job, onResult: (Boolean, String) -> Unit) {
         viewModelScope.launch {
-            val (success, message) = repository.postjob(job)
-            onResult(success, message)
+            val result = repository.postJob(job)
+            onResult(result.first, result.second)
         }
     }
 }
