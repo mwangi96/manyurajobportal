@@ -139,9 +139,7 @@ fun AlumniDashboardScreen(
 
                 "Applications" -> {
                     ApplicationsScreen(
-                        navController = navController,
-                        userId = sharedViewModel.userId.value ?: "",
-                        sharedViewModel = sharedViewModel
+                        userId = sharedViewModel.userId.value ?: ""
                     )
                 }
 
