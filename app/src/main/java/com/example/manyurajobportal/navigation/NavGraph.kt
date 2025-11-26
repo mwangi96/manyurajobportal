@@ -132,12 +132,9 @@ fun NavGraph(
 
         composable(Routes.ApplicationsScreen.route) {
             val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-            ApplicationsScreen(
-                navController = navController,
-                sharedViewModel = sharedViewModel,
-                userId = userId
-            )
+            ApplicationsScreen(userId = userId)
         }
+
 
     }
 }

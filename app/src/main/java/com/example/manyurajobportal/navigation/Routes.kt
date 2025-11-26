@@ -23,6 +23,7 @@ sealed class Routes(val route: String) {
     // 🎓 ALUMNI ROUTES
     // -------------------------
     object AlumniDashboard : Routes("alumni_dashboard?")
+
     object AlumniJobDetails : Routes("alumni_job_details/{jobId}")
     object ApplyScreen : Routes("apply/{jobId}")
     object ApplicationsScreen : Routes("applications")
