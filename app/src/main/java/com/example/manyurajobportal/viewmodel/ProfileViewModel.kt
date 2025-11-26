@@ -40,26 +40,6 @@ class ProfileViewModel(
 
 
     // ---------------------------------------------------------
-    // 2. Load full profile for ApplyScreen or anywhere
-    // ---------------------------------------------------------
-    fun fetchUserProfile(userId: String) {
-        viewModelScope.launch {
-            val db = repo.db
-            val doc = db.collection("profiles").document(userId).get().await()
-
-            if (doc.exists()) {
-                _profile.value = Profile(
-                    fullName = doc.getString("fullName") ?: "",
-                    email = doc.getString("email") ?: "",
-                    phone = doc.getString("phone") ?: "",
-                    location = doc.getString("location") ?: ""
-                )
-            }
-        }
-    }
-
-
-    // ---------------------------------------------------------
     // 3. Create Profile using repository
     // ---------------------------------------------------------
     fun createProfile(phone: String, location: String, onComplete: (Boolean) -> Unit) {
