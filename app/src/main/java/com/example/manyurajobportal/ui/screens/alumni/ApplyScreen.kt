@@ -97,12 +97,14 @@ fun ApplyScreen(
                     applicationViewModel.applyForJob(
                         jobId = job.jobId,
                         userId = userId,
+                        jobTitle = job.jobTitle,  // ADD THIS
                         fullName = fullName,
                         email = email,
                         phone = phone,
                         location = location
                     )
                 },
+
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !loading
             ) {
