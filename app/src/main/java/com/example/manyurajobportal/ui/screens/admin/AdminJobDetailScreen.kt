@@ -53,6 +53,7 @@ fun AdminJobDetailsScreen(
 
         Spacer(Modifier.height(32.dp))
 
+
         Button(
             onClick = { navController.navigate("admin_edit_job/${jobData.jobId}") },
             modifier = Modifier.fillMaxWidth()
