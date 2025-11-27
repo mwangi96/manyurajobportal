@@ -14,16 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.manyurajobportal.ui.screens.admin.PostedJobScreen
-import com.example.manyurajobportal.ui.screens.alumni.AlumniProfileScreen
-import com.example.manyurajobportal.ui.screens.alumni.ApplicationsScreen
-import com.example.manyurajobportal.viewmodel.SharedViewModel
-import com.example.manyurajobportal.viewmodel.alumni.AlumniJobViewModel
-import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.manyurajobportal.ui.screens.alumni.ApplicationScreen
+import com.example.manyurajobportal.utils.SharedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,22 +28,31 @@ fun AlumniDashboardScreen(
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
-//    var selectedItem by remember { mutableStateOf("Home") }
 
-
-    val backStackEntry = navController.currentBackStackEntryAsState().value
-    val tab = backStackEntry?.arguments?.getString("tab") ?: "Home"
-
-    var selectedItem by remember { mutableStateOf("Home") }
-
-    LaunchedEffect(tab) {
-        selectedItem = tab
+    /* ---------------------------
+     * LOAD USER DATA ONCE
+     * --------------------------- */
+    val userId = sharedViewModel.currentUser()
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            sharedViewModel.getUserFirestoreData(userId)
+        }
     }
 
-    val userName = sharedViewModel.userName.value
-    val userRole = sharedViewModel.userRole.value
+    val userData by sharedViewModel.firestoreData.collectAsState()
+    val userName = userData?.get("name")?.toString() ?: "Loading..."
+    val userRole = userData?.get("role")?.toString() ?: "alumni"
+
+    /* ---------------------------
+     * BOTTOM NAVIGATION STATE
+     * --------------------------- */
+    var selectedItem by remember { mutableStateOf("Home") }
 
     Scaffold(
+
+        /* ---------------------------
+         * TOP BAR
+         * --------------------------- */
         topBar = {
             TopAppBar(
                 title = {
@@ -96,6 +100,9 @@ fun AlumniDashboardScreen(
             )
         },
 
+        /* ---------------------------
+         * BOTTOM NAVIGATION
+         * --------------------------- */
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
@@ -104,18 +111,21 @@ fun AlumniDashboardScreen(
                     label = { Text("Home") },
                     icon = { Icon(Icons.Default.Home, contentDescription = null) }
                 )
+
                 NavigationBarItem(
                     selected = selectedItem == "Applications",
                     onClick = { selectedItem = "Applications" },
                     label = { Text("Applications") },
                     icon = { Icon(Icons.Default.Work, contentDescription = null) }
                 )
+
                 NavigationBarItem(
                     selected = selectedItem == "Chat",
                     onClick = { selectedItem = "Chat" },
                     label = { Text("Chat") },
                     icon = { Icon(Icons.Default.Chat, contentDescription = null) }
                 )
+
                 NavigationBarItem(
                     selected = selectedItem == "Profile",
                     onClick = { selectedItem = "Profile" },
@@ -126,6 +136,9 @@ fun AlumniDashboardScreen(
         }
     ) { padding ->
 
+        /* ---------------------------
+         * SCREEN SWITCHING
+         * --------------------------- */
         Box(modifier = Modifier.padding(padding)) {
 
             when (selectedItem) {
@@ -133,35 +146,35 @@ fun AlumniDashboardScreen(
                 "Home" -> {
                     PostedJobScreen(
                         navController = navController,
-                        sharedViewModel = sharedViewModel   // ⭐ FIXED
+                        sharedViewModel = sharedViewModel
                     )
                 }
 
                 "Applications" -> {
-                    ApplicationsScreen(
-                        userId = sharedViewModel.userId.value ?: ""
+                    ApplicationScreen(
+                        navController = navController,
+                        sharedViewModel = sharedViewModel
                     )
+
                 }
 
-
-//                "Chat" -> {
-//                    ChatScreen(
-//                        navController = navController,
-//                        sharedViewModel = sharedViewModel     // ⭐ USE SAME VIEWMODEL
-//                    )
-//                }
+                "Chat" -> {
+                    // TODO: Chat screen
+                }
 
                 "Profile" -> {
-                    AlumniProfileScreen(
-                        navController = navController,
-                        sharedViewModel = sharedViewModel     // ⭐ KEEP USER DATA
-                    )
+//                    AlumniProfileScreen(
+//                        navController = navController,
+//                        sharedViewModel = sharedViewModel
+//                    )
                 }
             }
         }
     }
 
-    // 🔹 Logout Dialog
+    /* ---------------------------
+     * LOGOUT DIALOG
+     * --------------------------- */
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -170,9 +183,9 @@ fun AlumniDashboardScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showLogoutDialog = false
-                    sharedViewModel.clearUserInfo()
+                    sharedViewModel.clearUserSession()
                     navController.navigate("login") {
-                        popUpTo("alumni_dashboard") { inclusive = true }
+                        popUpTo("login") { inclusive = true }
                     }
                 }) {
                     Text("Yes")

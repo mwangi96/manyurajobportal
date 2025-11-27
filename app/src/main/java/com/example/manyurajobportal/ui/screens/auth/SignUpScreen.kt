@@ -22,14 +22,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.manyurajobportal.R
-import com.example.manyurajobportal.navigation.Routes
-import com.example.manyurajobportal.viewmodel.AuthViewModel
+import com.example.manyurajobportal.utils.SharedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
     navController: NavController,
-    authViewModel: AuthViewModel
+    sharedViewModel: SharedViewModel
 ) {
     val context = LocalContext.current
     var name by remember { mutableStateOf("") }
@@ -37,7 +36,9 @@ fun SignUpScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val state by authViewModel.authState.collectAsState()
+    val isLoading by sharedViewModel.loading.collectAsState()
+    val errorMessage by sharedViewModel.errorMessage.collectAsState()
+
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
     ModalNavigationDrawer(
@@ -64,6 +65,7 @@ fun SignUpScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Logo
                 Image(
                     painter = painterResource(id = R.drawable.ist),
                     contentDescription = "App Logo",
@@ -89,6 +91,7 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+                // Name Input
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -99,6 +102,7 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Email Input
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -109,18 +113,20 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Password Input
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("Password") },
                     singleLine = true,
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    visualTransformation =
+                        if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
-                        val image =
+                        val icon =
                             if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
-                                imageVector = image,
+                                imageVector = icon,
                                 contentDescription = if (passwordVisible) "Hide password" else "Show password"
                             )
                         }
@@ -130,12 +136,13 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Sign Up Button
                 Button(
                     onClick = {
                         if (name.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
-                            authViewModel.signUpUser(name, email, password) { success ->
+                            sharedViewModel.signUp(name, email, password) { success ->
                                 if (success) {
-                                    Toast.makeText(context, "Signup successful! Please log in.", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Signup successful!", Toast.LENGTH_SHORT).show()
                                     navController.navigate(Routes.LoginScreen.route) {
                                         popUpTo(Routes.SignUpScreen.route) { inclusive = true }
                                     }
@@ -156,11 +163,14 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                TextButton(onClick = { navController.navigate(Routes.LoginScreen.route) }) {
+                TextButton(onClick = {
+                    navController.navigate(Routes.LoginScreen.route)
+                }) {
                     Text("Already have an account? Login")
                 }
 
-                if (state is AuthViewModel.AuthState.Loading) {
+                // Loading Indicator
+                if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier
                             .padding(top = 24.dp)
@@ -169,9 +179,10 @@ fun SignUpScreen(
                     )
                 }
 
-                if (state is AuthViewModel.AuthState.Error) {
+                // Error Message
+                errorMessage?.let {
                     Text(
-                        text = (state as AuthViewModel.AuthState.Error).message,
+                        text = it,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(top = 16.dp)
                     )

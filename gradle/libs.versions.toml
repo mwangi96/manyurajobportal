@@ -12,6 +12,11 @@ navigationRuntimeKtx = "2.9.5"
 firebaseStorageKtx = "22.0.1"
 roomKtx = "2.8.3"
 ui = "1.9.5"
+firebaseMessagingKtx = "25.0.1"
+firebaseFunctionsKtx = "22.1.0"
+firebaseDatabaseKtx = "22.0.1"
+identityCredential = "20231002"
+material3 = "1.4.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +37,11 @@ androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navig
 firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
+firebase-functions-ktx = { group = "com.google.firebase", name = "firebase-functions-ktx", version.ref = "firebaseFunctionsKtx" }
+firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtx" }
+identity-credential = { group = "com.android.identity", name = "identity-credential", version.ref = "identityCredential" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -7,11 +7,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.manyurajobportal.data.model.Job
+import com.example.manyurajobportal.utils.JobData
 
 @Composable
 fun JobCard(
-    job: Job,
+    job: JobData,
     isAdmin: Boolean,
     hasApplied: Boolean = false,
     applicantCount: Int = 0,
@@ -20,6 +20,7 @@ fun JobCard(
     onManageJobClick: () -> Unit = {},
     onClick: () -> Unit = {}
 ) {
+
     Card(
         modifier = Modifier
             .fillMaxWidth()

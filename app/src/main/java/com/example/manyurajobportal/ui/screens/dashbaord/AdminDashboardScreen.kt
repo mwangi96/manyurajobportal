@@ -9,17 +9,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PostAdd
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,9 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import com.example.manyurajobportal.ui.screens.admin.PostJobScreen
 import com.example.manyurajobportal.ui.screens.admin.PostedJobScreen
-//import com.example.manyurajobportal.ui.screens.chat.ChatScreen
-//import com.example.manyurajobportal.ui.screens.profile.AdminProfileScreen
-import com.example.manyurajobportal.viewmodel.SharedViewModel
+import com.example.manyurajobportal.utils.SharedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,8 +29,8 @@ fun AdminDashboardScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableStateOf("Posted Jobs") }
 
-    val userName = sharedViewModel.userName.value
-    val userRole = sharedViewModel.userRole.value
+    val userName by sharedViewModel.userName.collectAsState()
+    val userRole by sharedViewModel.userRole.collectAsState()
 
     Scaffold(
         topBar = {
@@ -52,7 +40,7 @@ fun AdminDashboardScreen(
                         Text("Admin Dashboard", fontWeight = FontWeight.Bold)
                         Text(
                             text = "Welcome, $userName ($userRole)",
-                            style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 },
@@ -100,18 +88,21 @@ fun AdminDashboardScreen(
                     label = { Text("Posted Jobs") },
                     icon = { Icon(Icons.Default.Work, contentDescription = null) }
                 )
+
                 NavigationBarItem(
                     selected = selectedItem == "Post Job",
                     onClick = { selectedItem = "Post Job" },
                     label = { Text("Post Job") },
                     icon = { Icon(Icons.Default.PostAdd, contentDescription = null) }
                 )
+
                 NavigationBarItem(
                     selected = selectedItem == "Chat",
                     onClick = { selectedItem = "Chat" },
                     label = { Text("Chat") },
                     icon = { Icon(Icons.Default.Chat, contentDescription = null) }
                 )
+
                 NavigationBarItem(
                     selected = selectedItem == "Profile",
                     onClick = { selectedItem = "Profile" },
@@ -122,55 +113,55 @@ fun AdminDashboardScreen(
         }
     ) { padding ->
 
-        // Render selected page here
         Box(modifier = Modifier.padding(padding)) {
+
             when (selectedItem) {
 
-                "Posted Jobs" -> {
-                    PostedJobScreen(
-                        navController = navController,
-                        sharedViewModel = sharedViewModel
+                "Posted Jobs" -> PostedJobScreen(
+                    navController = navController,
+                    sharedViewModel = sharedViewModel
+                )
+
+                "Post Job" -> PostJobScreen(
+                    navController = navController,
+                    sharedViewModel = sharedViewModel
+                )
+
+                "Chat" -> {
+                    Text(
+                        "Chat Screen Placeholder",
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
 
-
-                "Post Job" -> {
-                    PostJobScreen(
-                        navController = navController,
-                        sharedViewModel = sharedViewModel
+                "Profile" -> {
+                    Text(
+                        "Admin Profile Placeholder",
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
-
-//                "Chat" -> {
-//                    ChatScreen(navController = navController)
-//                }
-//
-//                "Profile" -> {
-//                    AdminProfileScreen(navController = navController)
-//                }
             }
         }
     }
 
-    // Logout Dialog
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             title = { Text("Confirm Logout") },
             text = { Text("Do you really want to log out?") },
             confirmButton = {
-                androidx.compose.material3.TextButton(onClick = {
+                TextButton(onClick = {
                     showLogoutDialog = false
-                    sharedViewModel.clearUserInfo()
+                    sharedViewModel.clearUserSession()
                     navController.navigate("login") {
-                        popUpTo("admin_dashboard") { inclusive = true }
+                        popUpTo("login") { inclusive = true }
                     }
                 }) {
                     Text("Yes")
                 }
             },
             dismissButton = {
-                androidx.compose.material3.TextButton(onClick = { showLogoutDialog = false }) {
+                TextButton(onClick = { showLogoutDialog = false }) {
                     Text("No")
                 }
             }

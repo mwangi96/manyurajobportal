@@ -23,16 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.manyurajobportal.R
-import com.example.manyurajobportal.navigation.Routes
-import com.example.manyurajobportal.viewmodel.AuthViewModel
-import com.example.manyurajobportal.viewmodel.SharedViewModel
+import com.example.manyurajobportal.utils.SharedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     navController: NavController,
-    authViewModel: AuthViewModel,
-    sharedViewModel: SharedViewModel // ✅ Added shared view model
+    sharedViewModel: SharedViewModel
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
@@ -42,8 +39,25 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var rememberMe by remember { mutableStateOf(sharedPreferences.getBoolean("remember_me", false)) }
 
-    val state by authViewModel.authState.collectAsState()
+    val isLoading by sharedViewModel.loading.collectAsState()
+    val errorMessage by sharedViewModel.errorMessage.collectAsState()
+    val firestoreData by sharedViewModel.firestoreData.collectAsState()
+
     val drawerState = rememberDrawerState(DrawerValue.Closed)
+
+    // Navigation when Firestore data is loaded
+    firestoreData?.let { user ->
+        val name = user["name"]?.toString() ?: ""
+        val role = user["role"]?.toString() ?: "alumni"
+
+        Toast.makeText(context, "Welcome, $name!", Toast.LENGTH_SHORT).show()
+
+        navController.navigate(
+            if (role == "admin") Routes.AdminDashboard.route else Routes.AlumniDashboard.route
+        ) {
+            popUpTo(Routes.LoginScreen.route) { inclusive = true }
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -69,28 +83,20 @@ fun LoginScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Logo
+
                 Image(
                     painter = painterResource(id = R.drawable.ist),
                     contentDescription = "App Logo",
                     modifier = Modifier.size(120.dp)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
                     text = "Welcome Back",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Login to continue your journey",
-                    color = Color.Gray,
-                    fontSize = 16.sp
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -114,12 +120,10 @@ fun LoginScreen(
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
-                        val image =
-                            if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
-                                imageVector = image,
-                                contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                                imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                contentDescription = null
                             )
                         }
                     },
@@ -128,7 +132,6 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // ✅ Remember Me Checkbox
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -137,94 +140,42 @@ fun LoginScreen(
                 ) {
                     Checkbox(
                         checked = rememberMe,
-                        onCheckedChange = { rememberMe = it },
-                        colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+                        onCheckedChange = { rememberMe = it }
                     )
-                    Text(
-                        text = "Remember Me",
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 16.sp
-                    )
+                    Text(text = "Remember Me", fontSize = 16.sp)
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // ✅ Login Button
+                // Login Button
                 Button(
                     onClick = {
-                        if (email.isNotBlank() && password.isNotBlank()) {
-                            authViewModel.loginUser(email, password) { success, role ->
-                                if (success) {
-                                    // ✅ Save credentials if Remember Me is checked
-                                    with(sharedPreferences.edit()) {
-                                        if (rememberMe) {
-                                            putString("email", email)
-                                            putString("password", password)
-                                            putBoolean("remember_me", true)
-                                        } else {
-                                            clear()
-                                        }
-                                        apply()
-                                    }
+                        if (email.isBlank() || password.isBlank()) {
+                            Toast.makeText(context, "Please fill all fields.", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
 
-                                    val currentUser = authViewModel.repository.currentUser()
-                                    val uid = currentUser?.uid
-                                    if (uid != null) {
-                                        authViewModel.repository.firestore.collection("users")
-                                            .document(uid)
-                                            .get()
-                                            .addOnSuccessListener { doc ->
-                                                val name = doc.getString("name") ?: ""
-                                                val emailFetched = doc.getString("email") ?: ""
-                                                val roleFetched = doc.getString("role") ?: "alumni"
+                        sharedViewModel.login(email, password) { success ->
+                            if (success) {
 
-                                                // ✅ Save user info into SharedViewModel
-                                                sharedViewModel.setUserInfo(
-                                                    name = name,
-                                                    email = emailFetched,
-                                                    role = roleFetched
-                                                )
-
-                                                Toast.makeText(
-                                                    context,
-                                                    "Welcome, $name!",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-
-                                                // ✅ Navigate based on role
-                                                navController.navigate(
-                                                    if (roleFetched == "admin")
-                                                        Routes.AdminDashboard.route
-                                                    else
-                                                        Routes.AlumniDashboard.route
-                                                ) {
-                                                    popUpTo(Routes.LoginScreen.route) {
-                                                        inclusive = true
-                                                    }
-                                                }
-                                            }
-                                            .addOnFailureListener {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Failed to fetch user data.",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                    }
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Invalid email or password!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                // Save Remember Me data
+                                with(sharedPreferences.edit()) {
+                                    if (rememberMe) {
+                                        putString("email", email)
+                                        putString("password", password)
+                                        putBoolean("remember_me", true)
+                                    } else clear()
+                                    apply()
                                 }
+
+                                // Fetch Firestore data
+                                val uid = sharedViewModel.currentUser()
+                                if (uid != null) {
+                                    sharedViewModel.getUserFirestoreData(uid)
+                                }
+                            } else {
+                                Toast.makeText(context, "Invalid email or password!", Toast.LENGTH_SHORT).show()
                             }
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Please fill all fields.",
-                                Toast.LENGTH_SHORT
-                            ).show()
                         }
                     },
                     modifier = Modifier
@@ -236,32 +187,29 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Navigation options
-                TextButton(onClick = { navController.navigate(Routes.SignUpScreen.route) }) {
+                TextButton(onClick = {
+                    navController.navigate(Routes.SignUpScreen.route)
+                }) {
                     Text("Don’t have an account? Sign up")
                 }
 
-                TextButton(onClick = { authViewModel.resetPassword(email) }) {
+                TextButton(onClick = {
+                    sharedViewModel.resetPassword(email) { ok ->
+                        if (ok) Toast.makeText(context, "Reset link sent!", Toast.LENGTH_SHORT).show()
+                        else Toast.makeText(context, "Failed to send reset link.", Toast.LENGTH_SHORT).show()
+                    }
+                }) {
                     Text("Forgot Password?")
                 }
 
-                // Loading state
-                if (state is AuthViewModel.AuthState.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .padding(top = 24.dp)
-                            .size(40.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                if (isLoading) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    CircularProgressIndicator()
                 }
 
-                // Error state
-                if (state is AuthViewModel.AuthState.Error) {
-                    Text(
-                        text = (state as AuthViewModel.AuthState.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
+                errorMessage?.let {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = it, color = MaterialTheme.colorScheme.error)
                 }
             }
         }

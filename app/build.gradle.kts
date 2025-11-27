@@ -44,7 +44,9 @@ android {
 }
 
 dependencies {
-    // ✅ Compose + Core
+    // ---------------------------------------
+    // Jetpack Compose
+    // ---------------------------------------
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -53,29 +55,39 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.navigation.runtime.ktx)
+
     implementation("androidx.navigation:navigation-compose:2.8.3")
     implementation("androidx.compose.material:material-icons-extended")
 
-    // ✅ Coroutines + Retrofit
+    // ---------------------------------------
+    // Retrofit + Coroutines
+    // ---------------------------------------
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-    // ✅ Firebase (using BOM)
+    // ---------------------------------------
+    // Firebase (clean + correct)
+    // ---------------------------------------
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("com.google.firebase:firebase-database-ktx")  // ★ FIXED
+
     implementation("com.google.android.gms:play-services-auth:21.4.0")
 
-    // ✅ ViewModel
+    // ---------------------------------------
+    // ViewModel
+    // ---------------------------------------
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.ui)
+    implementation(libs.androidx.material3)
 
-    // ✅ Testing
+    // ---------------------------------------
+    // Testing
+    // ---------------------------------------
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -84,8 +96,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // Coil for Jetpack Compose
+    // ---------------------------------------
+    // Coil
+    // ---------------------------------------
     implementation("io.coil-kt:coil-compose:2.4.0")
-
 }
-
