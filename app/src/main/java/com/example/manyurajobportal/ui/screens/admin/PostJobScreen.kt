@@ -151,7 +151,18 @@ fun PostJobScreen(
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar("Job Posted Successfully!")
                             }
-                            navController.navigate("posted_jobs")
+
+                            val role = sharedViewModel.currentUserRole.value
+
+                            if (role == "admin") {
+                                navController.navigate("posted_jobs") {
+                                    popUpTo("post_job") { inclusive = true }
+                                }
+                            } else {
+                                navController.navigate("alumni_dashboard") {
+                                    popUpTo("post_job") { inclusive = true }
+                                }
+                            }
                         },
                         onFailure = { e ->
                             coroutineScope.launch {

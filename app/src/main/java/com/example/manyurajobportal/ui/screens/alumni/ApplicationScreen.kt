@@ -24,7 +24,7 @@ fun ApplicationScreen(
     val loading by sharedViewModel.loading.collectAsState()
     val error by sharedViewModel.errorMessage.collectAsState()
 
-    val jobId = navController.currentBackStackEntry?.arguments?.getString("jobId") ?: ""
+    // ❌ Removed wrong jobId argument reading (not needed)
 
     Scaffold(
         topBar = {
@@ -33,14 +33,18 @@ fun ApplicationScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier
-            .padding(padding)
-            .fillMaxSize()
-            .padding(16.dp)) {
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
 
             when {
                 loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
 
                 error != null -> {
@@ -60,7 +64,9 @@ fun ApplicationScreen(
                 }
 
                 else -> {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         items(applications) { application ->
                             ApplicationItemCard(application)
                         }
@@ -78,9 +84,19 @@ fun ApplicationItemCard(application: ApplicationData) {
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = application.jobTitle, style = MaterialTheme.typography.titleMedium)
+
+            Text(
+                text = application.jobTitle,
+                style = MaterialTheme.typography.titleMedium
+            )
+
             Spacer(Modifier.height(4.dp))
-            Text(text = application.companyName, style = MaterialTheme.typography.bodyMedium)
+
+            Text(
+                text = application.companyName,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
             Spacer(Modifier.height(8.dp))
 
             Text(

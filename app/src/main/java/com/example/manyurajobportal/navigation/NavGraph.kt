@@ -14,6 +14,7 @@ import com.example.manyurajobportal.ui.screens.dashboard.AlumniDashboardScreen
 import com.example.manyurajobportal.ui.screens.intro.IntroScreen
 import com.example.manyurajobportal.ui.screens.alumni.*
 import com.example.manyurajobportal.ui.screens.intro.LoadScreen
+import com.example.manyurajobportal.ui.screens.jobs.JobDetailsScreen
 import com.example.manyurajobportal.utils.SharedViewModel
 
 @Composable
@@ -65,9 +66,9 @@ fun NavGraph(
             PostJobScreen(navController, sharedViewModel)
         }
 
-        // -------------------------------
-        // 🔹 ALUMNI ROUTES
-        // -------------------------------
+        // -----------------------------------------
+        // 🔹 ALUMNI DASHBOARD WITH ARGUMENT
+        // -----------------------------------------
         composable(
             route = Routes.AlumniDashboard.route,
             arguments = listOf(navArgument("tab") {
@@ -78,15 +79,51 @@ fun NavGraph(
             AlumniDashboardScreen(navController, sharedViewModel)
         }
 
-        composable(
-            route = Routes.ApplicationScreen.route,
-            arguments = listOf(navArgument("jobId") { type = NavType.StringType })
-        ) {
+        // -----------------------------------------
+        // 🔹 APPLICATION SCREEN (NO ARG)
+        // -----------------------------------------
+        composable(Routes.ApplicationScreen.route) {
             ApplicationScreen(navController, sharedViewModel)
         }
 
+        // -----------------------------------------
+        // 🔹 APPLY SCREEN (uses sealed class route)
+        // -----------------------------------------
+        composable(
+            route = Routes.ApplyScreen.route,
+            arguments = listOf(
+                navArgument("jobId") { type = NavType.StringType }
+            )
+        ) { backStack ->
+            val jobId = backStack.arguments?.getString("jobId") ?: ""
+            ApplyScreen(jobId, navController, sharedViewModel)
+        }
 
+        // -----------------------------------------
+        // 🔹 JOB DETAILS SCREEN
+        // -----------------------------------------
+        composable(
+            route = Routes.JobDetailsScreen.route,
+            arguments = listOf(
+                navArgument("jobId") { type = NavType.StringType }
+            )
+        ) { backStack ->
+            val jobId = backStack.arguments?.getString("jobId") ?: ""
+            JobDetailsScreen(navController, sharedViewModel, jobId)
+        }
 
+        // -----------------------------------------
+        // 🔹 APPLICANTS SCREEN (ADMIN)
+        // -----------------------------------------
+        composable(
+            route = Routes.ApplicantsScreen.route,
+            arguments = listOf(
+                navArgument("jobId") { type = NavType.StringType }
+            )
+        ) { backStack ->
+            val jobId = backStack.arguments?.getString("jobId") ?: ""
+            ApplicantsScreen(jobId, sharedViewModel, navController)
+        }
 
     }
 }

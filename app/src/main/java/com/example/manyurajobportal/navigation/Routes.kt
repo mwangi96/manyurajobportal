@@ -11,8 +11,19 @@ sealed class Routes(val route: String) {
 
     object AlumniDashboard : Routes("alumni_dashboard?tab={tab}")
 
-    object ApplicationScreen : Routes("application_screen/{jobId}") {
-        fun createRoute(jobId: String) = "application_screen/$jobId"
+    object ApplyScreen : Routes("apply/{jobId}") {
+        fun passId(id: String) = "apply/$id"
     }
+
+    object ApplicationScreen : Routes("application_screen")
+
+    object JobDetailsScreen : Routes("jobDetails/{jobId}") {
+        fun passId(id: String) = "jobDetails/$id"
+    }
+
+    object ApplicantsScreen : Routes("applicants/{jobId}") {
+        fun passId(id: String) = "applicants/$id"
+    }
+
 
 }

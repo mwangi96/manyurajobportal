@@ -1,6 +1,7 @@
 package com.example.manyurajobportal.utils
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -15,17 +16,18 @@ class FirebaseAuthRepository {
      * --------------------------------------------------------- */
     suspend fun signup(name: String, email: String, password: String): Boolean {
         return try {
-            // Create user in Firebase Auth
+            // Create user
             auth.createUserWithEmailAndPassword(email, password).await()
             val user = auth.currentUser ?: return false
 
-            // Update display name
+            // Update displayName
             val profileUpdates = UserProfileChangeRequest.Builder()
                 .setDisplayName(name)
                 .build()
+
             user.updateProfile(profileUpdates).await()
 
-            // Save user info to Firestore
+            // Save to Firestore
             val userMap = mapOf(
                 "uid" to user.uid,
                 "name" to name,
@@ -54,8 +56,30 @@ class FirebaseAuthRepository {
             auth.signInWithEmailAndPassword(email, password).await()
             true
         } catch (e: Exception) {
+            e.printStackTrace()
             false
         }
+    }
+
+    /* ---------------------------------------------------------
+     * LOGOUT USER (Corrected)
+     * --------------------------------------------------------- */
+    fun logout() {
+        auth.signOut()   // ❗ Correct logout
+    }
+
+    /* ---------------------------------------------------------
+     * CHECK IF USER IS LOGGED IN
+     * --------------------------------------------------------- */
+    fun isLoggedIn(): Boolean {
+        return auth.currentUser != null
+    }
+
+    /* ---------------------------------------------------------
+     * CURRENT USER OBJECT
+     * --------------------------------------------------------- */
+    fun currentUser(): FirebaseUser? {
+        return auth.currentUser
     }
 
     /* ---------------------------------------------------------
@@ -66,14 +90,10 @@ class FirebaseAuthRepository {
             auth.sendPasswordResetEmail(email).await()
             true
         } catch (e: Exception) {
+            e.printStackTrace()
             false
         }
     }
-
-    /* ---------------------------------------------------------
-     * CURRENT USER UID
-     * --------------------------------------------------------- */
-    fun currentUser(): String? = auth.currentUser?.uid
 
     /* ---------------------------------------------------------
      * GET USER FIRESTORE DOCUMENT
@@ -85,8 +105,9 @@ class FirebaseAuthRepository {
                 .get()
                 .await()
 
-            if (snapshot.exists()) snapshot.data else null
+            snapshot.data
         } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
@@ -102,6 +123,7 @@ class FirebaseAuthRepository {
                 .await()
             true
         } catch (e: Exception) {
+            e.printStackTrace()
             false
         }
     }

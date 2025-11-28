@@ -29,8 +29,19 @@ fun AdminDashboardScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableStateOf("Posted Jobs") }
 
-    val userName by sharedViewModel.userName.collectAsState()
-    val userRole by sharedViewModel.userRole.collectAsState()
+    val userRole by sharedViewModel.currentUserRole.collectAsState()
+    val userName = sharedViewModel.currentUserName
+
+    val currentUser = sharedViewModel.currentUser()
+
+    // 🔥 Prevent dashboard from loading when user is NULL (after logout)
+    LaunchedEffect(currentUser) {
+        if (currentUser == null) {
+            navController.navigate(Routes.LoginScreen.route) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -39,7 +50,10 @@ fun AdminDashboardScreen(
                     Column {
                         Text("Admin Dashboard", fontWeight = FontWeight.Bold)
                         Text(
-                            text = "Welcome, $userName ($userRole)",
+                            text = if (currentUser != null)
+                                "Welcome, $userName ($userRole)"
+                            else
+                                "Loading...",
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -49,6 +63,7 @@ fun AdminDashboardScreen(
                         IconButton(onClick = { showMenu = true }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
+
                         DropdownMenu(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
@@ -116,7 +131,6 @@ fun AdminDashboardScreen(
         Box(modifier = Modifier.padding(padding)) {
 
             when (selectedItem) {
-
                 "Posted Jobs" -> PostedJobScreen(
                     navController = navController,
                     sharedViewModel = sharedViewModel
@@ -127,19 +141,15 @@ fun AdminDashboardScreen(
                     sharedViewModel = sharedViewModel
                 )
 
-                "Chat" -> {
-                    Text(
-                        "Chat Screen Placeholder",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
+                "Chat" -> Text(
+                    "Chat Screen Placeholder",
+                    modifier = Modifier.align(Alignment.Center)
+                )
 
-                "Profile" -> {
-                    Text(
-                        "Admin Profile Placeholder",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
+                "Profile" -> Text(
+                    "Admin Profile Placeholder",
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
         }
     }
@@ -152,9 +162,14 @@ fun AdminDashboardScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showLogoutDialog = false
+
+                    // 🔥 Clear user session correctly
+                    sharedViewModel.logout()
                     sharedViewModel.clearUserSession()
-                    navController.navigate("login") {
-                        popUpTo("login") { inclusive = true }
+
+                    // 🔥 Wipe backstack & send to login
+                    navController.navigate(Routes.LoginScreen.route) {
+                        popUpTo(0) { inclusive = true }
                     }
                 }) {
                     Text("Yes")

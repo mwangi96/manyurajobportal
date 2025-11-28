@@ -41,23 +41,29 @@ fun LoginScreen(
 
     val isLoading by sharedViewModel.loading.collectAsState()
     val errorMessage by sharedViewModel.errorMessage.collectAsState()
-    val firestoreData by sharedViewModel.firestoreData.collectAsState()
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
     // Navigation when Firestore data is loaded
-    firestoreData?.let { user ->
-        val name = user["name"]?.toString() ?: ""
-        val role = user["role"]?.toString() ?: "alumni"
+    val firestoreData by sharedViewModel.firestoreData.collectAsState()
 
-        Toast.makeText(context, "Welcome, $name!", Toast.LENGTH_SHORT).show()
+    LaunchedEffect(firestoreData) {
+        firestoreData?.let { user ->
+            val name = user["name"]?.toString() ?: ""
+            val email = user["email"]?.toString() ?: ""
+            val role = user["role"]?.toString() ?: "alumni"
 
-        navController.navigate(
-            if (role == "admin") Routes.AdminDashboard.route else Routes.AlumniDashboard.route
-        ) {
-            popUpTo(Routes.LoginScreen.route) { inclusive = true }
+            sharedViewModel.setUserInfo(name, email, role)
+
+            navController.navigate(
+                if (role == "admin") Routes.AdminDashboard.route
+                else Routes.AlumniDashboard.route
+            ) {
+                popUpTo(Routes.LoginScreen.route) { inclusive = true }
+            }
         }
     }
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -173,6 +179,7 @@ fun LoginScreen(
                                 if (uid != null) {
                                     sharedViewModel.getUserFirestoreData(uid)
                                 }
+
                             } else {
                                 Toast.makeText(context, "Invalid email or password!", Toast.LENGTH_SHORT).show()
                             }

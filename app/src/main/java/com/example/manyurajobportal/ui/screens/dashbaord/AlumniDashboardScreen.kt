@@ -11,11 +11,9 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.manyurajobportal.ui.screens.admin.PostedJobScreen
 import com.example.manyurajobportal.ui.screens.alumni.ApplicationScreen
 import com.example.manyurajobportal.utils.SharedViewModel
@@ -29,39 +27,48 @@ fun AlumniDashboardScreen(
     var showMenu by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    /* ---------------------------
-     * LOAD USER DATA ONCE
-     * --------------------------- */
     val userId = sharedViewModel.currentUser()
+
+    /* ---------------------------------------------------------
+     * AUTO REDIRECT IF USER IS NULL
+     * --------------------------------------------------------- */
     LaunchedEffect(userId) {
-        if (userId != null) {
-            sharedViewModel.getUserFirestoreData(userId)
+        if (userId == null) {
+            navController.navigate(Routes.LoginScreen.route) {
+                popUpTo(0) { inclusive = true }
+            }
+            return@LaunchedEffect
         }
+
+        sharedViewModel.getUserFirestoreData(userId)
     }
 
+    /* ---------------------------------------------------------
+     * USER FIRESTORE DATA
+     * --------------------------------------------------------- */
     val userData by sharedViewModel.firestoreData.collectAsState()
     val userName = userData?.get("name")?.toString() ?: "Loading..."
     val userRole = userData?.get("role")?.toString() ?: "alumni"
 
-    /* ---------------------------
-     * BOTTOM NAVIGATION STATE
-     * --------------------------- */
+    /* ---------------------------------------------------------
+     * BOTTOM NAV STATE
+     * --------------------------------------------------------- */
     var selectedItem by remember { mutableStateOf("Home") }
+
+    LaunchedEffect(Unit) {
+        sharedViewModel.fetchApplications(sharedViewModel.currentUserEmail ?: "")
+    }
+
 
     Scaffold(
 
-        /* ---------------------------
-         * TOP BAR
-         * --------------------------- */
+        /* --------------------------- TOP BAR --------------------------- */
         topBar = {
             TopAppBar(
                 title = {
                     Column {
                         Text("Alumni Dashboard", fontWeight = FontWeight.Bold)
-                        Text(
-                            text = "Welcome, $userName ($userRole)",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Text("Welcome, $userName ($userRole)")
                     }
                 },
                 actions = {
@@ -100,81 +107,62 @@ fun AlumniDashboardScreen(
             )
         },
 
-        /* ---------------------------
-         * BOTTOM NAVIGATION
-         * --------------------------- */
+        /* ----------------------- BOTTOM NAV ----------------------- */
         bottomBar = {
             NavigationBar {
+
                 NavigationBarItem(
                     selected = selectedItem == "Home",
                     onClick = { selectedItem = "Home" },
                     label = { Text("Home") },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Home, null) }
                 )
 
                 NavigationBarItem(
                     selected = selectedItem == "Applications",
                     onClick = { selectedItem = "Applications" },
                     label = { Text("Applications") },
-                    icon = { Icon(Icons.Default.Work, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Work, null) }
                 )
 
                 NavigationBarItem(
                     selected = selectedItem == "Chat",
                     onClick = { selectedItem = "Chat" },
                     label = { Text("Chat") },
-                    icon = { Icon(Icons.Default.Chat, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Chat, null) }
                 )
 
                 NavigationBarItem(
                     selected = selectedItem == "Profile",
                     onClick = { selectedItem = "Profile" },
                     label = { Text("Profile") },
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) }
+                    icon = { Icon(Icons.Default.Person, null) }
                 )
             }
         }
     ) { padding ->
 
-        /* ---------------------------
-         * SCREEN SWITCHING
-         * --------------------------- */
         Box(modifier = Modifier.padding(padding)) {
 
             when (selectedItem) {
+                "Home" ->
+                    PostedJobScreen(navController, sharedViewModel)
 
-                "Home" -> {
-                    PostedJobScreen(
-                        navController = navController,
-                        sharedViewModel = sharedViewModel
-                    )
-                }
-
-                "Applications" -> {
-                    ApplicationScreen(
-                        navController = navController,
-                        sharedViewModel = sharedViewModel
-                    )
-
-                }
+                "Applications" ->
+                    ApplicationScreen(navController, sharedViewModel)
 
                 "Chat" -> {
                     // TODO: Chat screen
                 }
 
                 "Profile" -> {
-//                    AlumniProfileScreen(
-//                        navController = navController,
-//                        sharedViewModel = sharedViewModel
-//                    )
+                    // TODO: Profile screen
                 }
             }
         }
     }
 
-    /* ---------------------------
-     * LOGOUT DIALOG
-     * --------------------------- */
+    /* --------------------------- LOGOUT DIALOG --------------------------- */
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -183,13 +171,12 @@ fun AlumniDashboardScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showLogoutDialog = false
-                    sharedViewModel.clearUserSession()
-                    navController.navigate("login") {
-                        popUpTo("login") { inclusive = true }
+                    sharedViewModel.logout()
+
+                    navController.navigate(Routes.LoginScreen.route) {
+                        popUpTo(0) { inclusive = true }
                     }
-                }) {
-                    Text("Yes")
-                }
+                }) { Text("Yes") }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
